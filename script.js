@@ -17,6 +17,7 @@ const inputElevation = document.querySelector('.form__input--elevation');
 class App {
   #map;
   #mapEvent;
+  #workouts = [];
 
   constructor() {
     this._getPosition();
@@ -49,8 +50,7 @@ class App {
     // display the form for entering details about activity at the location clicked at
     form.classList.remove('hidden');
     inputDistance.focus();
-    // update global state
-    console.log(event);
+    // update App state
     this.#mapEvent = event;
     // display empty marker
     L.marker([this.#mapEvent.latlng.lat, this.#mapEvent.latlng.lng])
@@ -74,31 +74,29 @@ class App {
     const duration = inputDuration.value;
     const cadence = inputCadence.value || 0;
     const elevation = inputElevation.value || 0;
+    const { lat, lng } = this.#mapEvent.latlng;
+    const currentCoords = [lat, lng];
+    let workout;
 
     // Check if data is valid
     // prettier-ignore
     if (!this._validateWorkoutData(type, distance, duration, cadence, elevation))
       return;
 
-    // If workout running, create running object
-    console.log('success');
-    // If workout type is cycling, create cycling object
+    if (type === 'running') {
+      // If workout running, create running object
+      workout = new Running(currentCoords, distance, duration, cadence);
+    } else if (type === 'cycling') {
+      // If workout type is cycling, create cycling object
+      workout = new Cycling(currentCoords, distance, duration, elevation);
+    }
 
     // Add new object to workout array
+    this.#workouts.push(workout);
+    console.log(workout);
 
     // Render workout on map as a marker
-    L.marker([this.#mapEvent.latlng.lat, this.#mapEvent.latlng.lng])
-      .addTo(this.#map)
-      .bindPopup(
-        L.popup({
-          maxWidth: 250,
-          minWidth: 100,
-          autoClose: false,
-          closeOnClick: false,
-          className: 'running-popup',
-        }).setContent(`Ran ${inputDistance.value} here!`)
-      )
-      .openPopup();
+    this._renderWorkoutMarker(workout);
 
     // Render workout on list
 
@@ -121,6 +119,23 @@ class App {
       alert('Inputs have to be positive number!');
       return false;
     }
+    // return validation result
+    return validationCheck;
+  }
+
+  _renderWorkoutMarker(workout) {
+    L.marker(workout.coords)
+      .addTo(this.#map)
+      .bindPopup(
+        L.popup({
+          maxWidth: 250,
+          minWidth: 100,
+          autoClose: false,
+          closeOnClick: false,
+          className: `${workout.workoutType}-popup`,
+        }).setContent(`Ran ${workout.distance} here!`)
+      )
+      .openPopup();
   }
 }
 
@@ -128,10 +143,11 @@ class App {
 // Workout Classes
 
 class Workout {
-  constructor(coords, distance, duration) {
+  constructor(coords, type, distance, duration) {
     this.id = (Date.now() + '').slice(-10);
     this.date = new Date();
     this.coords = coords;
+    this.workoutType = type;
     this.distance = distance; // in KM
     this.duration = duration; // in minutes
   }
@@ -139,7 +155,7 @@ class Workout {
 
 class Running extends Workout {
   constructor(coords, distance, duration, cadence) {
-    super(coords, distance, duration);
+    super(coords, 'running', distance, duration);
     this.cadence = cadence;
     this.calcPace();
   }
@@ -153,7 +169,7 @@ class Running extends Workout {
 
 class Cycling extends Workout {
   constructor(coords, distance, duration, elevation) {
-    super(coords, distance, duration);
+    super(coords, 'cycling', distance, duration);
     this.elevation = elevation;
     this.calcSpeed();
   }
