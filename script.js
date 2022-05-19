@@ -68,7 +68,26 @@ class App {
     // prevent page reload on submit
     e.preventDefault();
 
-    // display marker
+    // Get data from form
+    const type = inputType.value;
+    const distance = inputDistance.value;
+    const duration = inputDuration.value;
+    if (type === 'running') {
+      const cadence = inputCadence.value;
+    }
+    if (type === 'cycling') {
+      const elevation = inputElevation.value;
+    }
+
+    // Check if data is valid
+
+    // If workout running, create running object
+
+    // If workout type is cycling, create cycling object
+
+    // Add new object to workout array
+
+    // Render workout on map as a marker
     L.marker([this.#mapEvent.latlng.lat, this.#mapEvent.latlng.lng])
       .addTo(this.#map)
       .bindPopup(
@@ -82,11 +101,15 @@ class App {
       )
       .openPopup();
 
-    // reset initial values
+    // Render workout on list
+
+    // Hide form + clear input fields
+
+    form.classList.add('hidden');
     // prettier-ignore
     inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = '';
 
-    form.classList.add('hidden');
+    // display marker
   }
 }
 
