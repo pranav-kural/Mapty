@@ -72,17 +72,16 @@ class App {
     const type = inputType.value;
     const distance = inputDistance.value;
     const duration = inputDuration.value;
-    if (type === 'running') {
-      const cadence = inputCadence.value;
-    }
-    if (type === 'cycling') {
-      const elevation = inputElevation.value;
-    }
+    const cadence = inputCadence.value || 0;
+    const elevation = inputElevation.value || 0;
 
     // Check if data is valid
+    // prettier-ignore
+    if (!this._validateWorkoutData(type, distance, duration, cadence, elevation))
+      return;
 
     // If workout running, create running object
-
+    console.log('success');
     // If workout type is cycling, create cycling object
 
     // Add new object to workout array
@@ -108,8 +107,20 @@ class App {
     form.classList.add('hidden');
     // prettier-ignore
     inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = '';
+  }
 
-    // display marker
+  // validate form input
+  _validateWorkoutData(type, distance, duration, cadence, elevation) {
+    const validationCheck =
+      [distance, duration, type === 'running' ? cadence : 0].every(
+        val => Number.isFinite(Number.parseFloat(val)) && val >= 0
+      ) &&
+      Number.isFinite(Number.parseFloat(type === 'cycling' ? elevation : 0));
+    // check if all values are valid numbers
+    if (!validationCheck) {
+      alert('Inputs have to be positive number!');
+      return false;
+    }
   }
 }
 
