@@ -20,6 +20,7 @@ class App {
 
   constructor() {
     this._getPosition();
+    this._getLocalStorage();
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -44,6 +45,8 @@ class App {
 
     // map click event handler
     this.#map.on('click', this._showForm.bind(this));
+
+    this.#workouts.forEach(workout => this._renderWorkoutMarker(workout));
   }
 
   _showForm(event) {
@@ -101,7 +104,6 @@ class App {
 
     // Add new object to workout array
     this.#workouts.push(workout);
-    console.log(workout);
 
     // Render workout on map as a marker
     this._renderWorkoutMarker(workout);
@@ -111,6 +113,9 @@ class App {
 
     // Hide form + clear input fields
     this._hideForm();
+
+    // Set local storage for all workouts
+    this._setLocalStorage();
   }
 
   // validate form input
@@ -208,6 +213,25 @@ class App {
       },
     });
   }
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const workouts = JSON.parse(localStorage.getItem('workouts'));
+
+    if (!workouts) return;
+
+    this.#workouts = workouts;
+
+    this.#workouts.forEach(workout => this._renderWorkout(workout));
+  }
+
+  _reset() {
+    localStorage.removeItem('workouts');
+    location.reload();
+  }
 }
 
 //////////////////////////////////////////////////////
@@ -257,11 +281,11 @@ class Cycling extends Workout {
 
   calcSpeed() {
     // km/h
-    this.speed = this.distance / this.duration;
+    this.speed = this.distance / (this.duration / 60);
     return this.speed;
   }
 }
-
+let app;
 if (navigator.geolocation) {
-  const app = new App();
+  app = new App();
 } else alert('Geolocation API not available!');
