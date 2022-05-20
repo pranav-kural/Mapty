@@ -1,7 +1,5 @@
 'use strict';
 
-// prettier-ignore
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 // DOM elements
 const form = document.querySelector('.form');
 const containerWorkouts = document.querySelector('.workouts');
@@ -59,6 +57,14 @@ class App {
       .openPopup();
   }
 
+  _hideForm() {
+    // prettier-ignore
+    inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = '';
+    form.style.display = 'none';
+    form.classList.add('hidden');
+    setTimeout(() => (form.style.display = 'grid'), 1000);
+  }
+
   _toggleElevationField() {
     inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
     inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
@@ -99,12 +105,10 @@ class App {
     this._renderWorkoutMarker(workout);
 
     // Render workout on list
+    this._renderWorkout(workout);
 
     // Hide form + clear input fields
-
-    form.classList.add('hidden');
-    // prettier-ignore
-    inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = '';
+    this._hideForm();
   }
 
   // validate form input
@@ -132,10 +136,59 @@ class App {
           minWidth: 100,
           autoClose: false,
           closeOnClick: false,
-          className: `${workout.workoutType}-popup`,
-        }).setContent(`Ran ${workout.distance} here!`)
+          className: `${workout.type}-popup`,
+        }).setContent(
+          `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'} ${workout.description}`
+        )
       )
       .openPopup();
+  }
+
+  _renderWorkout(workout) {
+    const workoutHTML = this._generateWorkoutHTML(workout);
+
+    form.insertAdjacentHTML('afterend', workoutHTML);
+  }
+
+  _generateWorkoutHTML(workout) {
+    return `
+    <li class="workout workout--${workout.type}" data-id="${workout.id}">
+    <h2 class="workout__title">${workout.description}</h2>
+    <div class="workout__details">
+      <span class="workout__icon">${
+        workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'
+      }</span>
+      <span class="workout__value">${workout.distance}</span>
+      <span class="workout__unit">km</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⏱</span>
+      <span class="workout__value">${workout.duration}</span>
+      <span class="workout__unit">min</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⚡️</span>
+      <span class="workout__value">${(workout.type === 'running'
+        ? workout.pace
+        : workout.speed
+      ).toFixed(1)}</span>
+      <span class="workout__unit">${
+        workout.type === 'running' ? 'min/km' : 'km/h'
+      }</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">${
+        workout.type === 'running' ? '🦶🏼' : '⛰'
+      }</span>
+      <span class="workout__value">${
+        workout.type === 'running' ? workout.cadence : workout.elevation
+      }</span>
+      <span class="workout__unit">${
+        workout.type === 'running' ? 'spm' : 'm'
+      }</span>
+    </div>
+  </li>
+    `;
   }
 }
 
@@ -147,9 +200,19 @@ class Workout {
     this.id = (Date.now() + '').slice(-10);
     this.date = new Date();
     this.coords = coords;
-    this.workoutType = type;
+    this.type = type; // type of workout
     this.distance = distance; // in KM
     this.duration = duration; // in minutes
+    this._setDescription();
+  }
+
+  _setDescription() {
+    // prettier-ignore
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
+      months[this.date.getMonth()]
+    } ${this.date.getDate()}`;
   }
 }
 
