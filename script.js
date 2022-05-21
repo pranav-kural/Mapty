@@ -160,7 +160,10 @@ class App {
   _generateWorkoutHTML(workout) {
     return `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
+    <div class="workout__header">
     <h2 class="workout__title">${workout.description}</h2>
+    <button class="workout__close__btn">X</button>
+    </div>
     <div class="workout__details">
       <span class="workout__icon">${
         workout.type === 'running' ? '🏃‍♂️' : '🚴‍♂️'
